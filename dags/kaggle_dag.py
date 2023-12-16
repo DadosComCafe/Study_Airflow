@@ -1,10 +1,10 @@
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.bash import BashOperator
-from airflow.providers.postgres import PostgresSensor
 from airflow.operators.python import PythonOperator
 from airflow.models import Variable
 from tasks.kaggle.main import download_csv
+from tasks.check_from_mongo.main import get_dataset_to_download
 
 with DAG(
     dag_id="get_files_from_kaggle",
@@ -23,31 +23,27 @@ with DAG(
         "user": Variable.get("mongo_user"),
         "password": Variable.get("mongo_password"),
         "port": Variable.get("mongo_port"),
-        "schema": "airflow_tasks"
+        "schema": "airflow_tasks",
     }
 
-#     mongo_sensor = MongoSensor(
-#     task_id='mogo_sensor_task',
-#     mongo_conn_id='mongo_connection',
-#     collection='initialize_airflow',
-#     mongo_db="local",
-#     query={'running': 'false'},
-#     poke_interval=10,
-#     timeout=600,
-#     dag=dag,
-# )
+    task_get_dataset_to_download = PythonOperator(
+        task_id="get_dataset_to_download",
+        python_callable=get_dataset_to_download,
+        provide_context=True,
+        dag=dag,
+    )
 
     task_initialize_dag = BashOperator(
         task_id="initializing_dag", bash_command="echo Initializing Dag!"
     )
 
-
-
     task_download_csv = PythonOperator(
         task_id="getting_csv",
         python_callable=download_csv,
+        provide_context=True,
         op_args=[kaggle_credentials, mongodb_credentials],
+        dag=dag,
     )
 
     # mongo_sensor >> task_initialize_dag >> task_download_csv
-    task_initialize_dag >> task_download_csv
+    task_initialize_dag >> task_get_dataset_to_download >> task_download_csv
