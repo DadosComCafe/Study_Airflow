@@ -1,7 +1,7 @@
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.models import Variable
 from tasks.kaggle.main import download_csv
 from tasks.check_from_mongo.main import get_dataset_to_download
@@ -26,7 +26,7 @@ with DAG(
         "schema": "airflow_tasks",
     }
 
-    task_get_dataset_to_download = PythonOperator(
+    task_get_dataset_to_download = BranchPythonOperator(
         task_id="get_dataset_to_download",
         python_callable=get_dataset_to_download,
         provide_context=True,
@@ -45,5 +45,9 @@ with DAG(
         dag=dag,
     )
 
-    # mongo_sensor >> task_initialize_dag >> task_download_csv
-    task_initialize_dag >> task_get_dataset_to_download >> task_download_csv
+    task_finalize_dag = BashOperator(
+        task_id="finalize_dag", bash_command="echo Finalizing Dag", dag=dag
+    )
+
+    task_initialize_dag >> task_get_dataset_to_download
+    task_get_dataset_to_download >> [task_download_csv, task_finalize_dag]
