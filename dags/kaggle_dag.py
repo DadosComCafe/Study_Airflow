@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.models import Variable
-from tasks.kaggle.main import download_csv
+from tasks.kaggle.main import download_dataset
 from tasks.check_from_mongo.main import get_dataset_to_download
 
 with DAG(
@@ -37,9 +37,9 @@ with DAG(
         task_id="initializing_dag", bash_command="echo Initializing Dag!"
     )
 
-    task_download_csv = PythonOperator(
+    task_download_dataset = PythonOperator(
         task_id="getting_csv",
-        python_callable=download_csv,
+        python_callable=download_dataset,
         provide_context=True,
         op_args=[kaggle_credentials, mongodb_credentials],
         dag=dag,
@@ -50,4 +50,4 @@ with DAG(
     )
 
     task_initialize_dag >> task_get_dataset_to_download
-    task_get_dataset_to_download >> [task_download_csv, task_finalize_dag]
+    task_get_dataset_to_download >> [task_download_dataset, task_finalize_dag]
