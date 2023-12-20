@@ -18,3 +18,18 @@ def download_dataset(kaggle_credentials, mongo_credentials, **kwargs):
         logging.info("Authenticated!")
     except Exception as e:
         raise Exception(f"An error: {e}")
+
+    try:
+        list_of_datasets = api.dataset_list(
+            search=f"{dataset['dataset_owner']}/{dataset['dataset_name']}"
+        )
+        logging.info(f"The dataset in list: {list_of_datasets}")
+        for dataset in list_of_datasets:
+            api.dataset_download_files(
+                dataset=dataset.ref, path=".", force=False, unzip=True
+            )
+            logging.info("The dataset has been downloaded successfully!")
+            logging.info(f"Files in current location: {os.listdir()}")
+    except Exception as e:
+        raise Exception(f"An error: {e}")
+    return True
