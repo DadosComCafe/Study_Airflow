@@ -3,8 +3,9 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.models import Variable
-from tasks.kaggle.main import download_csv
+from tasks.kaggle.main import download_dataset
 from tasks.check_from_mongo.main import get_dataset_to_download
+from tasks.upload_csv_to_storage.main import upload_blob_file_to_bucket
 
 with DAG(
     dag_id="get_files_from_kaggle",
@@ -37,11 +38,11 @@ with DAG(
         task_id="initializing_dag", bash_command="echo Initializing Dag!"
     )
 
-    task_download_csv = PythonOperator(
-        task_id="getting_csv",
-        python_callable=download_csv,
+    task_download_dataset = PythonOperator(
+        task_id="getting_dataset",
+        python_callable=download_dataset,
         provide_context=True,
-        op_args=[kaggle_credentials, mongodb_credentials],
+        op_args=[kaggle_credentials],
         dag=dag,
     )
 
@@ -49,5 +50,13 @@ with DAG(
         task_id="finalize_dag", bash_command="echo Finalizing Dag", dag=dag
     )
 
+    task_upload_file_to_storage = PythonOperator(
+        task_id="upload_to_gcp",
+        python_callable=upload_blob_file_to_bucket,
+        provide_context=True,
+        dag=dag,
+    )
+
     task_initialize_dag >> task_get_dataset_to_download
-    task_get_dataset_to_download >> [task_download_csv, task_finalize_dag]
+    task_get_dataset_to_download >> [task_download_dataset, task_finalize_dag]
+    task_download_dataset >> task_upload_file_to_storage

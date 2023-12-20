@@ -15,9 +15,13 @@ def get_dataset_to_download(**kwargs):
             return "finalize_dag"
 
         kwargs["ti"].xcom_push(
-            key="dataset", value=dataset_to_be_downloaded["dataset_name"]
+            key="dataset",
+            value={
+                "dataset_name": dataset_to_be_downloaded["dataset_name"],
+                "dataset_owner": dataset_to_be_downloaded["dataset_owner"],
+            },
         )
         logging.info(f"Get the dataset: {dataset_to_be_downloaded['dataset_name']}")
-        return "getting_csv"
+        return "getting_dataset"
     except Exception as e:
         logging.error(f"An exception: {e}")
