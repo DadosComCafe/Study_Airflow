@@ -25,9 +25,11 @@ def upload_blob_file_to_bucket(**kwargs):
                 destination_path="teste_csv", filename=file
             )
             logging.info(f"File {file} has been uploaded successfully!")
-            os.remove(file)
-            logging.info(
-                f"The file {file} has been deleted from local disk successfully!"
-            )
+            # os.remove(file)
+            # logging.info(
+            #     f"The file {file} has been deleted from local disk successfully!"
+            # )
         except Exception as e:
             raise Exception(f"An exception: {e}")
+    list_of_csv_files = [file for file in os.listdir() if ".csv" in file]
+    kwargs["ti"].xcom_push(key="csvs_path", value=list_of_csv_files)

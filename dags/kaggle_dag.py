@@ -6,6 +6,7 @@ from airflow.models import Variable
 from tasks.kaggle.main import download_dataset
 from tasks.check_from_mongo.main import get_dataset_to_download
 from tasks.upload_csv_to_storage.main import upload_blob_file_to_bucket
+from tasks.generate_table.main import create_table_schema_from_csv
 
 with DAG(
     dag_id="get_files_from_kaggle",
@@ -57,6 +58,12 @@ with DAG(
         dag=dag,
     )
 
+    task_generate_table_schema = PythonOperator(
+        task_id="create_table_schema_from_csv",
+        python_callable=create_table_schema_from_csv,
+        provide_context=True,
+        dag=dag,
+    )
     task_initialize_dag >> task_get_dataset_to_download
     task_get_dataset_to_download >> [task_download_dataset, task_finalize_dag]
-    task_download_dataset >> task_upload_file_to_storage
+    task_download_dataset >> task_upload_file_to_storage >> task_generate_table_schema
