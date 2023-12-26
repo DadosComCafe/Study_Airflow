@@ -6,7 +6,10 @@ from airflow.models import Variable
 from tasks.kaggle.main import download_dataset
 from tasks.check_from_mongo.main import get_dataset_to_download
 from tasks.upload_csv_to_storage.main import upload_blob_file_to_bucket
-from tasks.generate_table.main import create_table_schema_from_csv
+from tasks.generate_table.main import (
+    create_table_schema_from_csv,
+    create_postgres_table_from_schema,
+)
 
 with DAG(
     dag_id="get_files_from_kaggle",
@@ -26,6 +29,13 @@ with DAG(
         "password": Variable.get("mongo_password"),
         "port": Variable.get("mongo_port"),
         "schema": "airflow_tasks",
+    }
+    postgres_credentials = {
+        "host": Variable.get("postgres_host"),
+        "user": Variable.get("postgres_user"),
+        "password": Variable.get("postgres_password"),
+        "port": Variable.get("postgres_port"),
+        "dbname": Variable.get("postgres_db"),
     }
 
     task_get_dataset_to_download = BranchPythonOperator(
@@ -64,6 +74,19 @@ with DAG(
         provide_context=True,
         dag=dag,
     )
+
+    task_create_postgres_table = PythonOperator(
+        task_id="create_table_from_schema",
+        python_callable=create_postgres_table_from_schema,
+        provide_context=True,
+        op_args=[postgres_credentials],
+        dag=dag,
+    )
     task_initialize_dag >> task_get_dataset_to_download
     task_get_dataset_to_download >> [task_download_dataset, task_finalize_dag]
-    task_download_dataset >> task_upload_file_to_storage >> task_generate_table_schema
+    (
+        task_download_dataset
+        >> task_upload_file_to_storage
+        >> task_generate_table_schema
+        >> task_create_postgres_table
+    )
