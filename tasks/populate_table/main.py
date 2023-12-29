@@ -3,7 +3,15 @@ from psycopg2 import connect
 import logging
 
 
-def get_values_to_insert_from_csv(csv_path: list) -> list[tuple]:
+def get_values_to_insert_from_csv(csv_path: str) -> list[tuple]:
+    """Get values from csv to be send on postgres table
+
+    Args:
+        csv_path (str): The path of csv
+
+    Returns:
+        list[tuple]: List of values for each line. Each dictionary values has been transformed as a tuple.
+    """
     list_of_queries = []
     with open(csv_path, "r") as file:
         dict_objs = DictReader(file)
@@ -19,6 +27,14 @@ def get_values_to_insert_from_csv(csv_path: list) -> list[tuple]:
 
 
 def populate_table(postgres_credentials: dict, **kwargs):
+    """Populate table using the values returned in a list by the `get_values_to_insert_from_csv` function.
+
+    Args:
+        postgres_credentials (dict): The postgres credentials to connect to the database.
+
+    Raises:
+        Exception: An exception is raised when there is an error connecting to the database.
+    """
     csv_path = kwargs["ti"]
     csv_path = csv_path.xcom_pull(task_ids="upload_to_gcp", key="csvs_path")
     csv_path = csv_path[0]
