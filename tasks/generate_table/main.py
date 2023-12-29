@@ -1,4 +1,3 @@
-import os
 import logging
 from tasks.utils.format_csv.main import generate_relation
 from psycopg2 import connect
@@ -19,7 +18,7 @@ def translate_python_to_sql(dict_types: dict) -> dict:
         if value == "<class 'float'>":
             new_dict[key] = "DOUBLE PRECISION"
         if value == "<class 'int'>":
-            new_dict[key] = "INTEGER"
+            new_dict[key] = "DOUBLE PRECISION"
         if value == "<class 'str'>":
             new_dict[key] = "VARCHAR"
     return new_dict
