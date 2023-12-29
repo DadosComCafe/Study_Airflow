@@ -10,6 +10,7 @@ from tasks.generate_table.main import (
     create_table_schema_from_csv,
     create_postgres_table_from_schema,
 )
+from tasks.populate_table.main import populate_table
 
 with DAG(
     dag_id="get_files_from_kaggle",
@@ -82,6 +83,14 @@ with DAG(
         op_args=[postgres_credentials],
         dag=dag,
     )
+
+    task_populate_table = PythonOperator(
+        task_id="populate_postgres_table",
+        python_callable=populate_table,
+        provide_context=True,
+        op_args=[postgres_credentials],
+        dag=dag,
+    )
     task_initialize_dag >> task_get_dataset_to_download
     task_get_dataset_to_download >> [task_download_dataset, task_finalize_dag]
     (
@@ -89,4 +98,5 @@ with DAG(
         >> task_upload_file_to_storage
         >> task_generate_table_schema
         >> task_create_postgres_table
+        >> task_populate_table
     )
