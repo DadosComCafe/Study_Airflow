@@ -11,7 +11,7 @@ from tasks.generate_table.main import (
     create_postgres_table_from_schema,
 )
 from tasks.populate_table.main import populate_table
-from tasks.bigquery.main import test_bigquery
+from tasks.bigquery.main import run_bigquery
 
 with DAG(
     dag_id="get_files_from_kaggle",
@@ -95,7 +95,9 @@ with DAG(
 
     task_insert_to_bigquery = PythonOperator(
         task_id="insert_from_postgres_to_bigquery",
-        python_callable=test_bigquery,
+        python_callable=run_bigquery,
+        provide_context=True,
+        op_args=[postgres_credentials],
         dag=dag,
     )
     task_initialize_dag >> task_get_dataset_to_download
