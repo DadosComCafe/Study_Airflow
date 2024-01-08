@@ -1,12 +1,13 @@
-from pymongo import MongoClient
+from tasks.utils.mongo_wrapper import Mongo
 import logging
 
 
-def get_dataset_to_download(**kwargs):
+def get_dataset_to_download(mongodb_credentials: dict, **kwargs):
     """Checks if there are any kaggle dataset records that have not yet been downloaded"""
     try:
-        myclient = MongoClient("mongodb://mongo:senha@mongodb:27017/")
-        mydb = myclient["airflow_mongodb"]
+        mongo_obj = Mongo(credentials=mongodb_credentials)
+        myclient = mongo_obj.get_client()
+        mydb = myclient[mongodb_credentials["schema"]]
         collection = mydb["kaggle_datasets"]
 
         dataset_to_be_downloaded = collection.find_one({"downloaded": False})

@@ -11,6 +11,7 @@ from tasks.generate_table.main import (
     create_postgres_table_from_schema,
 )
 from tasks.populate_table.main import populate_table
+from tasks.bigquery.main import run_bigquery
 
 with DAG(
     dag_id="get_files_from_kaggle",
@@ -29,7 +30,7 @@ with DAG(
         "user": Variable.get("mongo_user"),
         "password": Variable.get("mongo_password"),
         "port": Variable.get("mongo_port"),
-        "schema": "airflow_tasks",
+        "schema": "airflow_mongodb",
     }
     postgres_credentials = {
         "host": Variable.get("postgres_host"),
@@ -39,10 +40,16 @@ with DAG(
         "dbname": Variable.get("postgres_db"),
     }
 
+    big_query_credentials = {
+        "destination_table": Variable.get("destination_table"),
+        "project_id": Variable.get("project_id"),
+    }
+
     task_get_dataset_to_download = BranchPythonOperator(
         task_id="get_dataset_to_download",
         python_callable=get_dataset_to_download,
         provide_context=True,
+        op_args=[mongodb_credentials],
         dag=dag,
     )
 
@@ -91,6 +98,14 @@ with DAG(
         op_args=[postgres_credentials],
         dag=dag,
     )
+
+    task_insert_to_bigquery = PythonOperator(
+        task_id="insert_from_postgres_to_bigquery",
+        python_callable=run_bigquery,
+        provide_context=True,
+        op_args=[postgres_credentials, big_query_credentials],
+        dag=dag,
+    )
     task_initialize_dag >> task_get_dataset_to_download
     task_get_dataset_to_download >> [task_download_dataset, task_finalize_dag]
     (
@@ -99,4 +114,5 @@ with DAG(
         >> task_generate_table_schema
         >> task_create_postgres_table
         >> task_populate_table
+        >> task_insert_to_bigquery
     )
