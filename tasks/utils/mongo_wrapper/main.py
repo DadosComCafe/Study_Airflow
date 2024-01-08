@@ -16,7 +16,6 @@ class Mongo:
     def connect_to_mongo(self) -> None:
         """Make the mongodb connection"""
         self.client = MongoClient(self.connection_config)
-        self.db_connection = self.client[self.credentials["db_name"]]
 
     def get_connection(self) -> database.Database:
         """Get the mongodb connection object
@@ -32,6 +31,7 @@ class Mongo:
         Returns:
             mongo_client.MongoClient: The client object
         """
+        self.connect_to_mongo()
         return self.client
 
 
