@@ -30,7 +30,7 @@ with DAG(
         "user": Variable.get("mongo_user"),
         "password": Variable.get("mongo_password"),
         "port": Variable.get("mongo_port"),
-        "schema": "airflow_tasks",
+        "schema": "airflow_mongodb",
     }
     postgres_credentials = {
         "host": Variable.get("postgres_host"),
@@ -44,6 +44,7 @@ with DAG(
         task_id="get_dataset_to_download",
         python_callable=get_dataset_to_download,
         provide_context=True,
+        op_args=[mongodb_credentials],
         dag=dag,
     )
 
