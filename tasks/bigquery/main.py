@@ -36,7 +36,7 @@ def get_dataframe(fetchall_values: tuple) -> pd.DataFrame:
     return df
 
 
-def run_bigquery(postgres_credentials: dict, **kwargs):
+def run_bigquery(postgres_credentials: dict, big_query_credentials: dict, **kwargs):
     list_from_csvs_path = kwargs["ti"]
     list_from_csvs_path = list_from_csvs_path.xcom_pull(
         task_ids="upload_to_gcp", key="csvs_path"
@@ -47,7 +47,11 @@ def run_bigquery(postgres_credentials: dict, **kwargs):
     )
     df_values = get_dataframe(fetchall_values)
     try:
-        client = bigquery.Client()
+        dest_table = big_query_credentials["destination_table"]
+        big_project_id = big_query_credentials["project_id"]
+        df_values.to_gbq(
+            destination_table=dest_table, project_id=big_project_id, if_exists="replace"
+        )
         logging.info(f"The query in dataframe: {df_values}")
         logging.info("BigQuery client has been initialized successfully!")
     except Exception as e:

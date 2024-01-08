@@ -40,6 +40,11 @@ with DAG(
         "dbname": Variable.get("postgres_db"),
     }
 
+    big_query_credentials = {
+        "destination_table": Variable.get("destination_table"),
+        "project_id": Variable.get("project_id"),
+    }
+
     task_get_dataset_to_download = BranchPythonOperator(
         task_id="get_dataset_to_download",
         python_callable=get_dataset_to_download,
@@ -98,7 +103,7 @@ with DAG(
         task_id="insert_from_postgres_to_bigquery",
         python_callable=run_bigquery,
         provide_context=True,
-        op_args=[postgres_credentials],
+        op_args=[postgres_credentials, big_query_credentials],
         dag=dag,
     )
     task_initialize_dag >> task_get_dataset_to_download
