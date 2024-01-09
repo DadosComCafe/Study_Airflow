@@ -3,35 +3,35 @@ import logging
 from typing import Union
 
 
-def find_record_with_no_null_value(csv_data) -> dict:
+def read_csv_data(file_path: str) -> list:
+    """A function must be called to handle the csv.DictReader aplication
+
+    Args:
+        file_path (str): The file path
+
+    Returns:
+        list: A list with the output of DictReader
+    """
+    with open(file_path, "r") as file:
+        return list(csv.DictReader(file))
+
+
+def find_record_with_no_null_value(csv_data: list) -> dict:
     """Find a record with no null value from the given CSV data. Iterate over the data and try to find a record with a
     valid value over every keys.
 
     Args:
-        csv_data (iterable): Iterable containing the CSV data.
+        csv_data (list): A returned list from read_csv_data() function.
 
     Returns:
         dict: The first dictionary which corresponds to the record.
     """
-    csv_reader = csv.DictReader(csv_data)
-
-    for record in csv_reader:
-        no_null_fields = True
-        for value in record.values():
-            if value is None or value == "":
-                no_null_fields = False
-                break
-
+    for record in csv_data:
+        no_null_fields = all(
+            value is not None and value != "" for value in record.values()
+        )
         if no_null_fields:
             return record
-
-
-def return_record_without_null_value(path_of_csv: str) -> dict:
-    with open(path_of_csv, mode="r") as file:
-        csv_content = file.readlines()
-
-    record_without_null = find_record_with_no_null_value(csv_content)
-    return record_without_null
 
 
 def verify_type(value: Union[str, float, int]) -> Union[str, float, int]:
@@ -68,7 +68,7 @@ def generate_relation(path_of_csv: str) -> dict:
         }
     """
     logging.info(f"Here {path_of_csv}")
-    desired_obj = return_record_without_null_value(path_of_csv)
+    desired_obj = find_record_with_no_null_value(read_csv_data(path_of_csv))
     list_obj_field = [key for key in desired_obj.keys()]
     field_type = {}
 
@@ -80,4 +80,4 @@ def generate_relation(path_of_csv: str) -> dict:
 
 if __name__ == "__main__":
     path_file = "teste_csv.csv"
-    print(return_record_without_null_value(path_of_csv=path_file))
+    print(find_record_with_no_null_value(read_csv_data(path_file)))

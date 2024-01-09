@@ -2,7 +2,6 @@ import os
 import logging
 import pandas as pd
 from psycopg2 import connect
-from google.cloud import bigquery
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/airflow/credentials/credentials.json"
 
