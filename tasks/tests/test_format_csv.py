@@ -1,4 +1,4 @@
-from format_csv import (
+from tasks.utils.format_csv import (
     find_record_with_no_null_value,
     read_csv_data,
     verify_type,
@@ -46,7 +46,7 @@ class TestFindRecordWithNoNullValue(TestCase):
 
 
 @patch(
-    "format_csv.main.csv.DictReader",
+    "tasks.utils.format_csv.main.csv.DictReader",
     return_value=[
         {"coluna1": "valor1", "coluna2": "valor2"},
         {"coluna1": "valor3", "coluna2": "valor4"},
@@ -90,9 +90,9 @@ class TestVerifyType(TestCase):
         self.assertEqual(verify_type(self.dict_of_values["string"]), str)
 
 
-@patch("format_csv.main.read_csv_data")
+@patch("tasks.utils.format_csv.main.read_csv_data")
 @patch(
-    "format_csv.main.find_record_with_no_null_value",
+    "tasks.utils.format_csv.main.find_record_with_no_null_value",
     return_value={"key1": "value1", "key2": "value2", "key3": "50"},
 )
 class TestGenerateRelation(TestCase):
