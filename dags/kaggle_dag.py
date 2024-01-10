@@ -12,6 +12,7 @@ from tasks.generate_table.main import (
 )
 from tasks.populate_table.main import populate_table
 from tasks.bigquery.main import run_bigquery
+from tasks.change_downloaded_record_on_mongo.main import change_downloaded_in_record
 
 with DAG(
     dag_id="get_files_from_kaggle",
@@ -106,6 +107,15 @@ with DAG(
         op_args=[postgres_credentials, big_query_credentials],
         dag=dag,
     )
+
+    task_change_download_to_true = PythonOperator(
+        task_id="change_downloaded",
+        python_callable=change_downloaded_in_record,
+        provide_context=True,
+        op_args=[mongodb_credentials],
+        dag=dag,
+    )
+
     task_initialize_dag >> task_get_dataset_to_download
     task_get_dataset_to_download >> [task_download_dataset, task_finalize_dag]
     (
@@ -115,4 +125,5 @@ with DAG(
         >> task_create_postgres_table
         >> task_populate_table
         >> task_insert_to_bigquery
+        >> task_change_download_to_true
     )
