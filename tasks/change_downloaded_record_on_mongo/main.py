@@ -14,10 +14,15 @@ def change_downloaded_in_record(mongodb_credentials: dict, **kwargs):
     new_value = {"$set": {"downloaded": True}}
     try:
         mongo_obj = Mongo(credentials=mongodb_credentials)
+        logging.info(query)
+        logging.info(new_value)
         myclient = mongo_obj.get_client()
+        logging.info("OK aqui")
         mydb = myclient[mongodb_credentials["schema"]]
+        logging.info("OK aqui")
         collection = mydb["kaggle_datasets"]
-        collection.update_one({query, new_value})
-        logging.info(f"The record has been changed: {query} -> {new_value}.")
+        logging.info("OK aqui")
+        collection.update_one(filter=query, update=new_value, upsert=False)
+        logging.info(f"The record has been changed.")
     except Exception as e:
         logging.error(f"An exception: {e}")
