@@ -1,0 +1,14 @@
+{"kaggle_user": "your_kaggle_user",
+"kaggle_password": "your_kaggle_password",
+"mongo_host": "mongodb",
+"mongo_user": "mongo",
+"mongo_password": "senha",
+"mongo_port": 27017,
+"postgres_user":"postgres",
+"postgres_password":"senha",
+"postgres_host":"my_postgres_db",
+"postgres_port": 5432,
+"postgres_db": "kaggle_dag_airflow",
+"destination_table": "bigquery_project_id.bigquery_datasetname.bigquery_table_name",
+"project_id": "bigquery_project_id"
+}
