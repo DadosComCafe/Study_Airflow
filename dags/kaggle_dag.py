@@ -16,7 +16,7 @@ from tasks.bigquery.main import run_bigquery
 with DAG(
     dag_id="get_files_from_kaggle",
     start_date=datetime(2023, 1, 1),
-    schedule_interval="0 0 * * *",
+    schedule_interval="0 * * * *",
     catchup=False,
 ) as dag:
 
